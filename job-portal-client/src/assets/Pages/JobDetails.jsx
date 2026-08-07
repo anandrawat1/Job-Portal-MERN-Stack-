@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { FiMapPin, FiClock, FiDollarSign, FiCalendar, FiBriefcase, FiUser, FiX, FiCheck, FiArrowLeft, FiBookmark, FiStar } from 'react-icons/fi'
+import { FiMapPin, FiClock, FiDollarSign, FiCalendar, FiBriefcase, FiUser, FiX, FiCheck, FiArrowLeft, FiBookmark, FiStar, FiShare2, FiMessageCircle, FiLinkedin, FiMail, FiLink } from 'react-icons/fi'
 import { useAuth } from '../../context/AuthContext'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000"
@@ -39,6 +39,31 @@ const JobDetails = () => {
       });
       setReviewSubmitted(true);
     } catch {}
+  }
+
+  const shareJob = (platform) => {
+    const url = window.location.href;
+    const title = `${job.jobTitle} at ${job.companyName}`;
+    const text = `Check out this amazing job opportunity: ${title} on JobJunction!`;
+    const fullMessage = `${text}\n\n${url}`;
+
+    if (platform === 'whatsapp') {
+      window.open(`https://wa.me/?text=${encodeURIComponent(fullMessage)}`, '_blank');
+    } else if (platform === 'linkedin') {
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+    } else if (platform === 'mail') {
+      window.location.href = `mailto:?subject=${encodeURIComponent("Job Opportunity: " + title)}&body=${encodeURIComponent(fullMessage)}`;
+    } else if (platform === 'copy') {
+      navigator.clipboard.writeText(fullMessage).then(() => {
+        Swal.fire({
+          title: "Link Copied!",
+          text: "Job link copied to clipboard.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false
+        });
+      });
+    }
   }
 
   useEffect(() => {
@@ -105,9 +130,9 @@ const JobDetails = () => {
           <div className="flex justify-between items-center mb-6">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-1 text-blue-200 hover:text-white text-sm transition-colors"
+              className="flex items-center gap-1 text-white hover:text-blue-100 text-base font-semibold transition-colors shadow-sm"
             >
-              <FiArrowLeft /> Back to Jobs
+              <FiArrowLeft className="w-5 h-5" /> Back to Jobs
             </button>
             <button onClick={handleSave} className="flex items-center gap-2 text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition-colors text-sm font-medium">
               <FiBookmark className={`w-4 h-4 ${isSaved ? 'fill-white' : ''}`} /> {isSaved ? 'Saved' : 'Save Job'}
@@ -268,6 +293,31 @@ const JobDetails = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Share Job */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FiShare2 className="text-blue-600" /> Share This Job
+            </h3>
+            <div className="grid grid-cols-4 gap-3">
+              <button onClick={() => shareJob('whatsapp')} className="flex flex-col items-center justify-center py-3 px-1 rounded-xl transition-colors group" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = '#dcfce7'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#f0fdf4'}>
+                <FiMessageCircle className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-bold">WhatsApp</span>
+              </button>
+              <button onClick={() => shareJob('linkedin')} className="flex flex-col items-center justify-center py-3 px-1 rounded-xl transition-colors group" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = '#dbeafe'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#eff6ff'}>
+                <FiLinkedin className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-bold">LinkedIn</span>
+              </button>
+              <button onClick={() => shareJob('mail')} className="flex flex-col items-center justify-center py-3 px-1 rounded-xl transition-colors group" style={{ backgroundColor: '#fef2f2', color: '#dc2626' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = '#fee2e2'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fef2f2'}>
+                <FiMail className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-bold">Email</span>
+              </button>
+              <button onClick={() => shareJob('copy')} className="flex flex-col items-center justify-center py-3 px-1 rounded-xl transition-colors group" style={{ backgroundColor: '#f3f4f6', color: '#374151' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = '#e5e7eb'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}>
+                <FiLink className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-bold">Copy Link</span>
+              </button>
             </div>
           </div>
         </div>

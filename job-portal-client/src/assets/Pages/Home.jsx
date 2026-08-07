@@ -346,17 +346,17 @@ const Home = () => {
 
       {/* ── Main Layout ── */}
       <div className="bg-[#f3f4f8] min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 xl:px-24 py-8 lg:grid lg:grid-cols-4 lg:gap-8">
+        <div className="max-w-7xl mx-auto px-4 xl:px-12 py-8 lg:grid lg:grid-cols-12 lg:gap-8">
 
           {/* Desktop Sidebar */}
-          <aside className="hidden lg:block lg:col-span-1 self-start lg:sticky lg:top-6">
+          <aside className="hidden lg:block lg:col-span-3 self-start lg:sticky lg:top-6">
             <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
               <FilterPanel />
             </div>
           </aside>
 
           {/* Jobs area */}
-          <main className="lg:col-span-2">
+          <main className="lg:col-span-6 xl:col-span-5">
 
             {/* Active filter chips */}
             {(hasActiveSearch || activeFilterCount > 0) && (
@@ -480,7 +480,7 @@ const Home = () => {
           </main>
 
           {/* Newsletter */}
-          <aside className="hidden lg:block lg:col-span-1 self-start lg:sticky lg:top-6">
+          <aside className="hidden lg:block lg:col-span-3 xl:col-span-4 self-start lg:sticky lg:top-6">
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
               <Newsletter />
             </div>
