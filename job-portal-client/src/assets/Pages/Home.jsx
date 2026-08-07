@@ -479,12 +479,19 @@ const Home = () => {
             )}
           </main>
 
-          {/* Newsletter */}
+          {/* Newsletter - desktop sticky */}
           <aside className="hidden lg:block lg:col-span-3 xl:col-span-4 self-start lg:sticky lg:top-6">
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
               <Newsletter />
             </div>
           </aside>
+        </div>
+
+        {/* Newsletter - mobile/tablet only (below job list) */}
+        <div className="lg:hidden px-4 pb-8">
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <Newsletter />
+          </div>
         </div>
       </div>
 

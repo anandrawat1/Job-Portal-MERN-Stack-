@@ -132,7 +132,45 @@ const ManageAdmins = () => {
         <div className="p-6">
           <h2 className="text-lg font-bold text-gray-800 mb-4">Current Administrators ({admins.length})</h2>
 
-          <div className="overflow-x-auto">
+          {/* Mobile: card list */}
+          <div className="sm:hidden space-y-3">
+            {admins.map((admin, idx) => (
+              <div key={idx} className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-base flex-shrink-0">
+                  {admin.email.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm truncate">{admin.email}</p>
+                  <p className="text-xs text-gray-400">
+                    {admin.isSuperAdmin ? 'Super Admin' : `Added by ${admin.addedBy || '—'}`}
+                  </p>
+                  {admin.isSuperAdmin && (
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                      Super Admin
+                    </span>
+                  )}
+                  {!admin.isSuperAdmin && admin.email === user?.email && (
+                    <span className="text-xs text-gray-400 italic">You</span>
+                  )}
+                </div>
+                {!admin.isSuperAdmin && admin.email !== user?.email && (
+                  <button
+                    onClick={() => handleRemoveAdmin(admin.email)}
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                    title="Revoke Admin Access"
+                  >
+                    <FiTrash2 className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            ))}
+            {admins.length === 0 && (
+              <p className="text-center text-gray-500 py-8">No admins found.</p>
+            )}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 text-sm text-gray-500">

@@ -84,21 +84,41 @@ const SalaryPage = () => {
       </div>
     
       {/* Salary Display Cards */}
-      <div className="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-8 my-16">
-        {filteredData.map((data) => (
-          <div key={data.id} className='bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-8'>
-            <h4 className="font-bold text-xl text-gray-900">{data.title}</h4>
-            <p className="my-3 font-semibold text-blue text-2xl">{data.salary} <span className="text-sm text-gray-500 font-normal">avg/year</span></p>
-            <div className="flex flex-wrap gap-3 mt-6">
-              <button onClick={() => openJobsModal(data)} className="flex-1 py-2 text-sm font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
-                View Openings
-              </button>
-              <button onClick={() => openSkillsModal(data)} className="flex-1 py-2 text-sm font-semibold bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors">
-                Required Skills
-              </button>
+      <div className="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6 my-16">
+        {filteredData.map((data) => {
+          const demandColor =
+            data.demand === 'Extremely High' ? { bg: '#faf5ff', text: '#7c3aed', dot: '#7c3aed' } :
+            data.demand === 'Very High'      ? { bg: '#f0fdf4', text: '#16a34a', dot: '#16a34a' } :
+            data.demand === 'High'           ? { bg: '#eff6ff', text: '#2563eb', dot: '#2563eb' } :
+                                              { bg: '#f9fafb', text: '#6b7280', dot: '#9ca3af' };
+          return (
+            <div key={data.id} className='bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all border border-gray-100 p-7 flex flex-col'>
+              <div className="flex items-start justify-between mb-3">
+                <h4 className="font-extrabold text-lg text-gray-900 leading-snug pr-2">{data.title}</h4>
+                {data.growth && (
+                  <span className="flex-shrink-0 text-xs font-bold text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">
+                    {data.growth} YoY
+                  </span>
+                )}
+              </div>
+              <p className="font-bold text-blue text-2xl mb-1">{data.salary} <span className="text-sm text-gray-400 font-normal">avg/year</span></p>
+              {data.demand && (
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: demandColor.dot }}></div>
+                  <span className="text-xs font-semibold" style={{ color: demandColor.text }}>Demand: {data.demand}</span>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-3 mt-auto">
+                <button onClick={() => openJobsModal(data)} className="flex-1 py-2.5 text-sm font-semibold bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100">
+                  View Openings
+                </button>
+                <button onClick={() => openSkillsModal(data)} className="flex-1 py-2.5 text-sm font-semibold bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition-colors border border-indigo-100">
+                  Required Skills
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* MODALS */}

@@ -418,15 +418,20 @@ const MyJobs = () => {
               ) : (
                 <div className="space-y-4">
                   {jobApplicants.map(applicant => (
-                    <div key={applicant._id} className="bg-gray-50 rounded-xl p-5 border border-gray-100 flex flex-col gap-4">
-                      {/* Top Row: Info & Actions */}
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-semibold text-gray-900">{applicant.applicantName}</p>
-                          <p className="text-sm text-gray-500">{applicant.applicantEmail}</p>
-                          <p className="text-xs text-gray-400 mt-1">Applied: {formatDate(applicant.appliedAt)}</p>
-                        </div>
+                    <div key={applicant._id} className="bg-gray-50 rounded-xl p-4 sm:p-5 border border-gray-100">
+                      {/* Header: Avatar + Name + Actions */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                         <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-base flex-shrink-0">
+                            {(applicant.applicantName || applicant.applicantEmail || 'U').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{applicant.applicantName}</p>
+                            <p className="text-sm text-gray-500">{applicant.applicantEmail}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">Applied: {formatDate(applicant.appliedAt)}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:flex-shrink-0">
                           <a href={applicant.resumeLink} target="_blank" rel="noopener noreferrer"
                              className="text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-blue-100 transition-colors">
                              Resume <FiExternalLink/>
@@ -442,11 +447,18 @@ const MyJobs = () => {
                             <option value="hired">Hired</option>
                             <option value="rejected">Rejected</option>
                           </select>
+                          <button
+                            onClick={() => handleWithdrawOrReject(applicant._id, true)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Reject applicant"
+                          >
+                            <FiXCircle className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
 
-                      {/* Bottom Row: Admin Notes */}
-                      <div className="pt-3 border-t border-gray-100">
+                      {/* Notes */}
+                      <div className="pt-3 mt-3 border-t border-gray-100">
                         <textarea
                           placeholder="Add private notes about this candidate..."
                           defaultValue={applicant.notes || ''}

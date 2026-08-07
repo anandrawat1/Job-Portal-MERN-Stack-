@@ -72,9 +72,9 @@ const Navbar = () => {
               >
                 {user.photoURL ? (
                   <img src={user.photoURL} alt="avatar" referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <FiUser className="text-blue-600 w-4 h-4" />
+                                ) : (
+                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                    {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div className="text-left">
@@ -149,8 +149,8 @@ const Navbar = () => {
                   {user.photoURL ? (
                     <img src={user.photoURL} alt="avatar" referrerPolicy="no-referrer" className="w-10 h-10 rounded-full object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <FiUser className="text-blue-600" />
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-base">
+                      {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
                     </div>
                   )}
                   <div>

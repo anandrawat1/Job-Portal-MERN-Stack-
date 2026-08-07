@@ -377,6 +377,27 @@ app.get("/talent-pool", async (req, res) => {
   }
 });
 
+app.delete("/talent-pool/:targetEmail", async (req, res) => {
+  const { targetEmail } = req.params;
+  const { email } = req.query;
+  if (!(await checkAdmin(email))) return res.status(403).json({ message: "Unauthorized" });
+
+  const connected = await getDb();
+  if (!connected || !usersCollection) {
+    return res.status(500).json({ message: "Database not connected" });
+  }
+  try {
+    // Remove resume link so they no longer appear in the talent pool
+    const result = await usersCollection.updateOne(
+      { email: decodeURIComponent(targetEmail) },
+      { $unset: { resumeLink: "" } }
+    );
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to remove from talent pool" });
+  }
+});
+
 // ─── USER PROFILE ─────────────────────────────────────────────────────────────
 app.post("/user-profile", async (req, res) => {
   const { email, displayName, phone, headline, bio, linkedinUrl, resumeLink, photoURL } = req.body;
