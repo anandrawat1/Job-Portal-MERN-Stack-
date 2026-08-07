@@ -25,7 +25,7 @@ const Navbar = () => {
     { path: "/", title: "Find Jobs", always: true },
     { path: "/companies", title: "Companies", always: true },
     { path: "/salary", title: "Salary Insights", always: true },
-    { path: "/my-job", title: "My Jobs", show: !!user },
+    { path: "/my-job", title: isAdmin ? "Manage Jobs" : "My Jobs", show: !!user },
     { path: "/post-job", title: "Post a Job", show: isAdmin },
     { path: "/talent", title: "Talent Pool", show: isAdmin },
     { path: "/analytics", title: "Analytics", show: isAdmin },
