@@ -1,12 +1,26 @@
 import React from 'react'
-import { Link } from 'react-router-dom';
-import { FiMapPin, FiClock, FiDollarSign, FiCalendar, FiArrowRight } from 'react-icons/fi';
-
+import { Link, useNavigate } from 'react-router-dom';
+import { FiMapPin, FiClock, FiDollarSign, FiCalendar, FiArrowRight, FiBookmark } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
+import Swal from 'sweetalert2';
 const Card = ({ data }) => {
-  const { _id, companyName, jobTitle, companyLogo, minPrice, maxPrice, salaryType, jobLocation, employmentType, postingDate, description } = data;
+  const { _id, companyName, jobTitle, companyLogo, minPrice, maxPrice, salaryType, jobLocation, employmentType, postingDate, description, featured, urgent, verified, status } = data;
+  const { user, userProfile, toggleSavedJob } = useAuth();
+  const navigate = useNavigate();
 
   // Show "New" badge if posted within last 3 days
   const isNew = postingDate && (new Date() - new Date(postingDate)) / (1000 * 60 * 60 * 24) <= 3;
+  const isSaved = userProfile?.savedJobs?.includes(String(_id));
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      Swal.fire({ title: 'Sign In Required', text: 'Please sign in to save jobs', icon: 'info' }).then(() => navigate('/login'));
+      return;
+    }
+    await toggleSavedJob(String(_id), isSaved);
+  };
 
   const getInitials = (name = '') => name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const bgColors = ['#dbeafe', '#fce7f3', '#dcfce7', '#ede9fe', '#ffedd5'];
@@ -31,11 +45,21 @@ const Card = ({ data }) => {
               <h3 className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors leading-tight mt-0.5">{jobTitle}</h3>
             </div>
           </div>
-          {data.status === 'closed' ? (
-            <span className="flex-shrink-0 text-xs font-bold bg-red-100 text-red-700 px-2.5 py-1 rounded-full">Closed</span>
-          ) : isNew ? (
-            <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">New</span>
-          ) : null}
+          <div className="flex flex-col items-end gap-2">
+            <button onClick={handleSave} className="text-gray-400 hover:text-blue-600 transition-colors p-1">
+              <FiBookmark className={`w-5 h-5 ${isSaved ? 'fill-blue-600 text-blue-600' : ''}`} />
+            </button>
+            <div className="flex flex-wrap justify-end gap-1.5 w-32">
+              {featured && <span className="text-[10px] font-bold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">⭐ Featured</span>}
+              {urgent && <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">⚡ Urgent</span>}
+              {verified && <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">✅ Verified</span>}
+              {status === 'closed' ? (
+                <span className="text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Closed</span>
+              ) : isNew ? (
+                <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">New</span>
+              ) : null}
+            </div>
+          </div>
         </div>
 
         {/* Description */}

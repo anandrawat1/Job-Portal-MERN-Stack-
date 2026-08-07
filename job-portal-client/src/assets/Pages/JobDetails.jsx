@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { FiMapPin, FiClock, FiDollarSign, FiCalendar, FiBriefcase, FiUser, FiX, FiCheck, FiArrowLeft } from 'react-icons/fi'
+import { FiMapPin, FiClock, FiDollarSign, FiCalendar, FiBriefcase, FiUser, FiX, FiCheck, FiArrowLeft, FiBookmark, FiStar } from 'react-icons/fi'
 import { useAuth } from '../../context/AuthContext'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000"
@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000
 const JobDetails = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, userProfile, toggleSavedJob } = useAuth()
   const [job, setJob] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -16,6 +16,30 @@ const JobDetails = () => {
   const [applying, setApplying] = useState(false)
   const [applied, setApplied] = useState(false)
   const [error, setError] = useState('')
+
+  const [rating, setRating] = useState(0)
+  const [hoverRating, setHoverRating] = useState(0)
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewSubmitted, setReviewSubmitted] = useState(false)
+
+  const isSaved = userProfile?.savedJobs?.includes(String(id));
+
+  const handleSave = async () => {
+    if (!user) { navigate('/login'); return; }
+    await toggleSavedJob(String(id), isSaved);
+  }
+
+  const handleReviewSubmit = async () => {
+    if (!rating) return;
+    try {
+      await fetch(`${API_BASE_URL}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyName: job.companyName, reviewerEmail: user.email, rating, comment: reviewComment })
+      });
+      setReviewSubmitted(true);
+    } catch {}
+  }
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/all-jobs/${id}`)
@@ -78,12 +102,17 @@ const JobDetails = () => {
       {/* Hero Header */}
       <div style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #3575E2 60%, #60a5fa 100%)' }} className="py-14 px-4">
         <div className="max-w-5xl mx-auto">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1 text-blue-200 hover:text-white text-sm mb-6 transition-colors"
-          >
-            <FiArrowLeft /> Back to Jobs
-          </button>
+          <div className="flex justify-between items-center mb-6">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1 text-blue-200 hover:text-white text-sm transition-colors"
+            >
+              <FiArrowLeft /> Back to Jobs
+            </button>
+            <button onClick={handleSave} className="flex items-center gap-2 text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition-colors text-sm font-medium">
+              <FiBookmark className={`w-4 h-4 ${isSaved ? 'fill-white' : ''}`} /> {isSaved ? 'Saved' : 'Save Job'}
+            </button>
+          </div>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {job.companyLogo && (
               <div className="bg-white rounded-2xl p-3 shadow-lg flex-shrink-0">
@@ -150,7 +179,43 @@ const JobDetails = () => {
                   <FiCheck className="w-8 h-8 text-green-500"/>
                 </div>
                 <p className="font-bold text-lg text-gray-900">Applied!</p>
-                <p className="text-sm text-gray-500 mt-1">Good luck with your application 🎉</p>
+                <p className="text-sm text-gray-500 mt-1 mb-6">Good luck with your application 🎉</p>
+                
+                {/* Review Section */}
+                {!reviewSubmitted ? (
+                  <div className="bg-gray-50 rounded-xl p-4 text-left border border-gray-100">
+                    <p className="font-medium text-sm text-gray-900 mb-2">Rate {job.companyName}</p>
+                    <div className="flex gap-1 mb-3">
+                      {[1,2,3,4,5].map(star => (
+                        <FiStar 
+                          key={star} 
+                          className={`w-6 h-6 cursor-pointer ${star <= (hoverRating || rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => setRating(star)}
+                        />
+                      ))}
+                    </div>
+                    <textarea 
+                      placeholder="Optional feedback..."
+                      value={reviewComment}
+                      onChange={e => setReviewComment(e.target.value)}
+                      className="w-full text-sm p-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none mb-3"
+                      rows="2"
+                    />
+                    <button 
+                      onClick={handleReviewSubmit}
+                      disabled={!rating}
+                      className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                    >
+                      Submit Review
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-blue-50 text-blue-700 p-3 rounded-xl text-sm font-medium">
+                    Thank you for your feedback! ⭐
+                  </div>
+                )}
               </div>
             ) : (
               <>

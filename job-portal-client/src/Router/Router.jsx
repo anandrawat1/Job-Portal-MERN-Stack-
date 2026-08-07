@@ -16,6 +16,8 @@ import ForgotPassword from "../components/ForgotPassword";
 import Companies from "../assets/Pages/Companies";
 import EditProfile from "../assets/Pages/EditProfile";
 import TalentPool from "../assets/Pages/TalentPool";
+import Analytics from "../assets/Pages/Analytics";
+import ManageAdmins from "../assets/Pages/ManageAdmins";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
@@ -33,6 +35,14 @@ const router = createBrowserRouter([
         {
           path: "/talent",
           element: <AdminRoute><TalentPool/></AdminRoute>
+        },
+        {
+          path: "/analytics",
+          element: <AdminRoute><Analytics/></AdminRoute>
+        },
+        {
+          path: "/manage-admins",
+          element: <AdminRoute><ManageAdmins/></AdminRoute>
         },
         {
           path: "/post-job",

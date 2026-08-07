@@ -28,6 +28,8 @@ const Navbar = () => {
     { path: "/my-job", title: "My Jobs", show: !!user },
     { path: "/post-job", title: "Post a Job", show: isAdmin },
     { path: "/talent", title: "Talent Pool", show: isAdmin },
+    { path: "/analytics", title: "Analytics", show: isAdmin },
+    { path: "/manage-admins", title: "Admins", show: isAdmin },
   ].filter(item => item.always || item.show);
 
   return (
@@ -36,8 +38,8 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-xl text-black font-bold flex-shrink-0">
           <svg width="28" height="28" viewBox="0 0 29 30" xmlns="http://www.w3.org/2000/svg" fill="none">
-            <circle cx="12.0143" cy="12.5143" r="12.0143" fill="#3575E2" fillOpacity="0.4"/>
-            <circle cx="16.9857" cy="17.4857" r="12.0143" fill="#3575E2"/>
+            <circle cx="12.0143" cy="12.5143" r="12.0143" fill="#3575E2" fillOpacity="0.4" />
+            <circle cx="16.9857" cy="17.4857" r="12.0143" fill="#3575E2" />
           </svg>
           <span>JobJunction</span>
         </Link>
@@ -69,10 +71,10 @@ const Navbar = () => {
                 className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-50 border border-gray-100 hover:border-gray-200 transition-all"
               >
                 {user.photoURL ? (
-                  <img src={user.photoURL} alt="avatar" referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover"/>
+                  <img src={user.photoURL} alt="avatar" referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <FiUser className="text-blue-600 w-4 h-4"/>
+                    <FiUser className="text-blue-600 w-4 h-4" />
                   </div>
                 )}
                 <div className="text-left">
@@ -81,7 +83,7 @@ const Navbar = () => {
                   </p>
                   {isAdmin && <span className="text-[10px] text-blue-600 font-medium">Admin</span>}
                 </div>
-                <FiChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isAvatarOpen ? 'rotate-180' : ''}`}/>
+                <FiChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isAvatarOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Dropdown */}
@@ -93,16 +95,16 @@ const Navbar = () => {
                   </div>
                   <Link to="/profile" onClick={() => setIsAvatarOpen(false)}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <FiUser className="w-4 h-4 text-gray-400"/> Edit Profile
+                    <FiUser className="w-4 h-4 text-gray-400" /> Edit Profile
                   </Link>
                   <Link to="/my-job" onClick={() => setIsAvatarOpen(false)}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <FiBriefcase className="w-4 h-4 text-gray-400"/> My Jobs
+                    <FiBriefcase className="w-4 h-4 text-gray-400" /> My Jobs
                   </Link>
                   <div className="border-t border-gray-50 mt-1 pt-1">
                     <button onClick={() => { logout(); setIsAvatarOpen(false); }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
-                      <FiLogOut className="w-4 h-4"/> Logout
+                      <FiLogOut className="w-4 h-4" /> Logout
                     </button>
                   </div>
                 </div>
@@ -122,7 +124,7 @@ const Navbar = () => {
 
         {/* Mobile Toggle */}
         <button className="lg:hidden p-2 rounded-lg hover:bg-gray-50" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          {isMenuOpen ? <FaXmark className="w-5 h-5 text-gray-700"/> : <FaBarsStaggered className="w-5 h-5 text-gray-700"/>}
+          {isMenuOpen ? <FaXmark className="w-5 h-5 text-gray-700" /> : <FaBarsStaggered className="w-5 h-5 text-gray-700" />}
         </button>
       </nav>
 
@@ -145,10 +147,10 @@ const Navbar = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-3 px-4 py-3">
                   {user.photoURL ? (
-                    <img src={user.photoURL} alt="avatar" referrerPolicy="no-referrer" className="w-10 h-10 rounded-full object-cover"/>
+                    <img src={user.photoURL} alt="avatar" referrerPolicy="no-referrer" className="w-10 h-10 rounded-full object-cover" />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <FiUser className="text-blue-600"/>
+                      <FiUser className="text-blue-600" />
                     </div>
                   )}
                   <div>
@@ -158,11 +160,11 @@ const Navbar = () => {
                 </div>
                 <Link to="/profile" onClick={() => setIsMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 hover:bg-gray-50">
-                  <FiUser className="w-4 h-4"/> Edit Profile
+                  <FiUser className="w-4 h-4" /> Edit Profile
                 </Link>
                 <button onClick={() => { logout(); setIsMenuOpen(false); }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-500 hover:bg-red-50">
-                  <FiLogOut className="w-4 h-4"/> Logout
+                  <FiLogOut className="w-4 h-4" /> Logout
                 </button>
               </div>
             ) : (

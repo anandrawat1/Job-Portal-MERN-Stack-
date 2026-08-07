@@ -54,8 +54,35 @@ export const AuthProvider = ({ children }) => {
     if (user?.email) fetchProfile(user.email);
   };
 
+  const toggleSavedJob = async (jobId, isSaved) => {
+    if (!user?.email) return false;
+    
+    // Optimistic update
+    setUserProfile(prev => {
+      if (!prev) return prev;
+      const current = prev.savedJobs || [];
+      return { ...prev, savedJobs: isSaved ? current.filter(id => id !== jobId) : [...current, jobId] };
+    });
+
+    try {
+      if (isSaved) {
+        await fetch(`${API_BASE_URL}/saved-jobs/${jobId}?email=${encodeURIComponent(user.email)}`, { method: 'DELETE' });
+      } else {
+        await fetch(`${API_BASE_URL}/saved-jobs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: user.email, jobId })
+        });
+      }
+      return true;
+    } catch {
+      refreshProfile(); // Revert on failure
+      return false;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, logout, isAdmin, userProfile, refreshProfile }}>
+    <AuthContext.Provider value={{ user, loading, logout, isAdmin, userProfile, refreshProfile, toggleSavedJob }}>
       {children}
     </AuthContext.Provider>
   );

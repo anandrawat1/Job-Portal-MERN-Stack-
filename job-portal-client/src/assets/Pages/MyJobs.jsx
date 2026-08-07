@@ -9,6 +9,8 @@ const MyJobs = () => {
   const { user, isAdmin } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [activeTab, setActiveTab] = useState('applications'); // 'applications' | 'saved'
   const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,6 +35,10 @@ const MyJobs = () => {
         .then(res => res.json())
         .then(data => { setApplications(Array.isArray(data) ? data : []); setIsLoading(false); })
         .catch(() => { setApplications([]); setIsLoading(false); });
+        
+      fetch(`${API_BASE_URL}/saved-jobs/${encodeURIComponent(user.email)}`)
+        .then(res => res.json())
+        .then(data => setSavedJobs(Array.isArray(data) ? data : []));
     }
   };
 
@@ -117,7 +123,21 @@ const MyJobs = () => {
     }
   };
 
-  const safeItems = isAdmin ? jobs : applications;
+  const handleToggleBadge = async (jobId, badgeField, currentValue) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/update-job/${jobId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [badgeField]: !currentValue }),
+      });
+      const data = await res.json();
+      if (data.acknowledged || data.modifiedCount > 0) {
+        setJobs(prev => prev.map(j => String(j._id) === String(jobId) ? { ...j, [badgeField]: !currentValue } : j));
+      }
+    } catch { alert('Failed to update badge.'); }
+  };
+
+  const safeItems = isAdmin ? jobs : (activeTab === 'saved' ? savedJobs : applications);
   const filtered = safeItems.filter(item => {
     const title = item.jobTitle || '';
     return title.toLowerCase().includes(searchText.toLowerCase());
@@ -156,7 +176,19 @@ const MyJobs = () => {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Search */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-6 flex gap-3">
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row md:items-center gap-3">
+          {!isAdmin && (
+            <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto">
+              <button 
+                onClick={() => {setActiveTab('applications'); setCurrentPage(1);}}
+                className={`flex-1 md:px-6 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'applications' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
+              >Applications</button>
+              <button 
+                onClick={() => {setActiveTab('saved'); setCurrentPage(1);}}
+                className={`flex-1 md:px-6 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'saved' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
+              >Saved Jobs</button>
+            </div>
+          )}
           <div className="relative flex-1">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"/>
             <input
@@ -198,6 +230,7 @@ const MyJobs = () => {
                     <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Job Title</th>
                     <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</th>
                     <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Badges</th>
                     <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Applicants</th>
                     <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -218,6 +251,13 @@ const MyJobs = () => {
                         ) : (
                            <span className="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-1 rounded-full font-semibold">Active</span>
                         )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1.5 w-max">
+                          <button onClick={() => handleToggleBadge(job._id, 'featured', job.featured)} className={`text-[10px] px-2 py-1 rounded border text-left transition-colors ${job.featured ? 'bg-yellow-50 border-yellow-200 text-yellow-700 font-bold' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}>⭐ Featured</button>
+                          <button onClick={() => handleToggleBadge(job._id, 'urgent', job.urgent)} className={`text-[10px] px-2 py-1 rounded border text-left transition-colors ${job.urgent ? 'bg-orange-50 border-orange-200 text-orange-700 font-bold' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}>⚡ Urgent</button>
+                          <button onClick={() => handleToggleBadge(job._id, 'verified', job.verified)} className={`text-[10px] px-2 py-1 rounded border text-left transition-colors ${job.verified ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}>✅ Verified</button>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <button onClick={() => handleViewApplicants(job)}
@@ -248,9 +288,35 @@ const MyJobs = () => {
             </div>
           </div>
         ) : (
-          /* Regular User: Card View of Applications */
+          /* Regular User: Card View of Applications/Saved */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {currentItems.map((app, idx) => {
+            {currentItems.map((item, idx) => {
+              if (activeTab === 'saved') {
+                return (
+                  <div key={item._id || idx} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <Link to={`/job/${item._id}`} className="font-semibold text-gray-900 text-base hover:text-blue-600 transition-colors">{item.jobTitle}</Link>
+                        <p className="text-sm text-gray-500 mt-0.5">{item.companyName}</p>
+                      </div>
+                      <button onClick={async () => {
+                         await fetch(`${API_BASE_URL}/saved-jobs/${item._id}?email=${encodeURIComponent(user.email)}`, { method: 'DELETE' });
+                         setSavedJobs(prev => prev.filter(j => String(j._id) !== String(item._id)));
+                      }} className="text-gray-400 hover:text-red-500 p-1"><FiTrash2 className="w-4 h-4"/></button>
+                    </div>
+                    {item.jobLocation && (
+                      <p className="text-xs text-gray-400 flex items-center gap-1 mb-3">
+                        <FiMapPin className="w-3 h-3"/> {item.jobLocation}
+                      </p>
+                    )}
+                    <div className="border-t border-gray-50 pt-3 flex items-center justify-between">
+                      <span className="text-xs text-gray-400">Posted: {formatDate(item.postingDate)}</span>
+                      <Link to={`/job/${item._id}`} className="text-xs font-medium text-blue-600 hover:text-blue-700">View Job →</Link>
+                    </div>
+                  </div>
+                )
+              }
+              const app = item;
               const statusColors = {
                 pending: 'bg-yellow-50 text-yellow-700 border-yellow-100',
                 reviewing: 'bg-blue-50 text-blue-700 border-blue-100',

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiBriefcase, FiMapPin, FiSearch, FiExternalLink } from 'react-icons/fi';
+import { FiBriefcase, FiMapPin, FiSearch, FiExternalLink, FiStar } from 'react-icons/fi';
 import PageHeader from '../../components/PageHeader';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
@@ -34,9 +34,21 @@ const Companies = () => {
           companyMap[name].jobs.push(job);
         });
         const list = Object.values(companyMap).sort((a, b) => b.openJobs - a.openJobs);
-        setCompanies(list);
-        setFiltered(list);
-        setIsLoading(false);
+        
+        // Fetch reviews
+        Promise.all(list.map(async (company) => {
+          try {
+             const res = await fetch(`${API_BASE_URL}/reviews/${encodeURIComponent(company.name)}`);
+             const rData = await res.json();
+             return { ...company, avgRating: rData.avgRating, reviewsCount: rData.count, reviews: rData.reviews };
+          } catch {
+             return { ...company, avgRating: 0, reviewsCount: 0, reviews: [] };
+          }
+        })).then(listWithReviews => {
+          setCompanies(listWithReviews);
+          setFiltered(listWithReviews);
+          setIsLoading(false);
+        });
       })
       .catch(() => { setCompanies([]); setFiltered([]); setIsLoading(false); });
   }, []);
@@ -126,6 +138,9 @@ const Companies = () => {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{company.name}</h3>
                       <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5"><FiMapPin className="flex-shrink-0"/> {company.location}</p>
+                      {company.reviewsCount > 0 && (
+                        <p className="text-xs text-yellow-600 flex items-center gap-1 mt-1 font-medium"><FiStar className="fill-yellow-500"/> {company.avgRating} ({company.reviewsCount} reviews)</p>
+                      )}
                     </div>
                   </div>
 
