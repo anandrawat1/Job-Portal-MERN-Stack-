@@ -9,7 +9,15 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173,http:/
 // Middleware
 app.use(express.json())
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    // Allow any vercel.app subdomain in production + explicit allowlist
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   methods: ["POST", "GET", "PATCH", "DELETE", "OPTIONS"],
   credentials: true
 }));
