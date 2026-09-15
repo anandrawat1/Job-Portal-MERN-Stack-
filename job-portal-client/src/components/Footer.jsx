@@ -53,8 +53,8 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500">
-          <p>© 2026 JobJunction. Made by <a href="https://www.linkedin.com/in/lakshay-dhoundiyal-531b25259/" target="_blank" rel="noopener noreferrer" className="text-blue font-medium hover:underline">Lakshay Dhoundiyal</a>.</p>
-          <p className="text-xs text-gray-400">Built with React, Node.js & MongoDB</p>
+          <p>© 2026 JobJunction. Made by <a href="https://www.linkedin.com/in/anand-rawat-504ba7265/" target="_blank" rel="noopener noreferrer" className="text-blue font-medium hover:underline">Anand Singh Rawat</a>.</p>
+          <p className="text-xs text-gray-400">Built with React, Express, Node.js & MongoDB</p>
         </div>
       </div>
     </footer>

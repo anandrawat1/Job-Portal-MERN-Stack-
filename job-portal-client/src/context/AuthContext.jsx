@@ -1,8 +1,22 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import app from '../firebase/firebase.config';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+  setPersistence,
+  browserSessionPersistence,
+} from "firebase/auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+import app from "../firebase/firebase.config";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -14,34 +28,64 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = useCallback(async (email) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/user-profile/${encodeURIComponent(email)}`);
+      const res = await fetch(
+        `${API_BASE_URL}/user-profile/${encodeURIComponent(email)}`,
+      );
+
       const data = await res.json();
+
+      console.log("PROFILE API:", {
+        status: res.status,
+        data: data,
+      });
+
+      if (!res.ok) {
+        setUserProfile(null);
+        return;
+      }
+
       setUserProfile(data || null);
-    } catch {
+    } catch (error) {
+      console.error("PROFILE FETCH ERROR:", error);
       setUserProfile(null);
     }
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser?.email) {
-        try {
-          const res = await fetch(`${API_BASE_URL}/admin-check?email=${encodeURIComponent(currentUser.email)}`);
-          const data = await res.json();
-          setIsAdmin(data.isAdmin === true);
-        } catch {
-          setIsAdmin(false);
-        }
-        fetchProfile(currentUser.email);
-      } else {
-        setIsAdmin(false);
-        setUserProfile(null);
-      }
-      setLoading(false);
-    });
+    let unsubscribe;
 
-    return () => unsubscribe();
+    const setupAuth = async () => {
+      await setPersistence(auth, browserSessionPersistence);
+
+      unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        setUser(currentUser);
+
+        if (currentUser?.email) {
+          try {
+            const res = await fetch(
+              `${API_BASE_URL}/admin-check?email=${encodeURIComponent(currentUser.email)}`,
+            );
+            const data = await res.json();
+            setIsAdmin(data.isAdmin === true);
+          } catch {
+            setIsAdmin(false);
+          }
+
+          await fetchProfile(currentUser.email);
+        } else {
+          setIsAdmin(false);
+          setUserProfile(null);
+        }
+
+        setLoading(false);
+      });
+    };
+
+    setupAuth();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [auth, fetchProfile]);
 
   const logout = async () => {
@@ -56,22 +100,30 @@ export const AuthProvider = ({ children }) => {
 
   const toggleSavedJob = async (jobId, isSaved) => {
     if (!user?.email) return false;
-    
+
     // Optimistic update
-    setUserProfile(prev => {
+    setUserProfile((prev) => {
       if (!prev) return prev;
       const current = prev.savedJobs || [];
-      return { ...prev, savedJobs: isSaved ? current.filter(id => id !== jobId) : [...current, jobId] };
+      return {
+        ...prev,
+        savedJobs: isSaved
+          ? current.filter((id) => id !== jobId)
+          : [...current, jobId],
+      };
     });
 
     try {
       if (isSaved) {
-        await fetch(`${API_BASE_URL}/saved-jobs/${jobId}?email=${encodeURIComponent(user.email)}`, { method: 'DELETE' });
+        await fetch(
+          `${API_BASE_URL}/saved-jobs/${jobId}?email=${encodeURIComponent(user.email)}`,
+          { method: "DELETE" },
+        );
       } else {
         await fetch(`${API_BASE_URL}/saved-jobs`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: user.email, jobId })
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user.email, jobId }),
         });
       }
       return true;
@@ -82,7 +134,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, isAdmin, userProfile, refreshProfile, toggleSavedJob }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        logout,
+        isAdmin,
+        userProfile,
+        refreshProfile,
+        toggleSavedJob,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,29 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { FiSearch, FiMapPin, FiArrowRight, FiBriefcase, FiUsers, FiTrendingUp } from 'react-icons/fi';
+import React, { useState, useEffect } from "react";
+import {
+  FiSearch,
+  FiMapPin,
+  FiArrowRight,
+  FiBriefcase,
+  FiUsers,
+  FiTrendingUp,
+  FiCrosshair,
+} from "react-icons/fi";
 
-const jobCategories = ['Software Engineer', 'Product Designer', 'Data Scientist', 'DevOps Engineer', 'Frontend Developer', 'Product Manager'];
+const jobCategories = [
+  "Software Engineer",
+  "Product Designer",
+  "Data Scientist",
+  "DevOps Engineer",
+  "Frontend Developer",
+  "Product Manager",
+];
 
-const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange, handleSearch }) => {
+const Banner = ({
+  query,
+  handleInputChange,
+  locationQuery,
+  handleLocationChange,
+  handleSearch,
+  stats,
+}) => {
   const [activeCategory, setActiveCategory] = useState(0);
-  const [displayed, setDisplayed] = useState('');
+  const [displayed, setDisplayed] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIndex, setCharIndex] = useState(0);
-  const [localQuery, setLocalQuery] = useState(query || '');
-  const [localLocation, setLocalLocation] = useState(locationQuery || '');
+  const [localQuery, setLocalQuery] = useState(query || "");
+  const [localLocation, setLocalLocation] = useState(locationQuery || "");
 
   // Typewriter effect
   useEffect(() => {
     const currentWord = jobCategories[activeCategory];
     let timer;
     if (!isDeleting && charIndex < currentWord.length) {
-      timer = setTimeout(() => setCharIndex(c => c + 1), 80);
+      timer = setTimeout(() => setCharIndex((c) => c + 1), 80);
     } else if (!isDeleting && charIndex === currentWord.length) {
       timer = setTimeout(() => setIsDeleting(true), 2000);
     } else if (isDeleting && charIndex > 0) {
-      timer = setTimeout(() => setCharIndex(c => c - 1), 45);
+      timer = setTimeout(() => setCharIndex((c) => c - 1), 45);
     } else if (isDeleting && charIndex === 0) {
       setIsDeleting(false);
-      setActiveCategory(c => (c + 1) % jobCategories.length);
+      setActiveCategory((c) => (c + 1) % jobCategories.length);
     }
     return () => clearTimeout(timer);
   }, [charIndex, isDeleting, activeCategory]);
@@ -34,9 +56,78 @@ const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange,
 
   const onSearch = (e) => {
     e.preventDefault();
-    handleInputChange({ target: { value: localQuery } });
-    handleLocationChange({ target: { value: localLocation } });
-    handleSearch && handleSearch();
+
+    handleInputChange({
+      target: { value: localQuery },
+    });
+
+    handleLocationChange({
+      target: { value: localLocation },
+    });
+
+    handleSearch && handleSearch(localQuery, localLocation);
+  };
+
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Location service is not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to detect location");
+          }
+
+          const data = await response.json();
+
+          const city =
+            data.city || data.locality || data.principalSubdivision || "";
+
+          if (!city) {
+            alert("Could not detect your city.");
+            return;
+          }
+
+          setLocalLocation(city);
+
+          handleLocationChange({
+            target: {
+              value: city,
+            },
+          });
+        } catch (error) {
+          console.error("Location lookup failed:", error);
+          alert("Unable to detect your location.");
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+
+        if (error.code === 1) {
+          alert("Please allow location access in your browser.");
+        } else if (error.code === 2) {
+          alert("Your location could not be determined.");
+        } else if (error.code === 3) {
+          alert("Location request timed out.");
+        } else {
+          alert("Unable to detect your location.");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
+      },
+    );
   };
 
   const handlePopularTag = (tag) => {
@@ -46,7 +137,13 @@ const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange,
   };
 
   return (
-    <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%)' }}>
+    <div
+      className="relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%)",
+      }}
+    >
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10 bg-blue-400 blur-3xl" />
@@ -58,14 +155,21 @@ const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange,
         {/* Badge */}
         <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 text-gray-300 text-sm px-4 py-1.5 rounded-full mb-6">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-          10,000+ Active Jobs Available
+          {Number(stats?.activeJobs || 0).toLocaleString()} Active Jobs
+          Available
         </div>
 
         {/* Headline */}
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight min-h-[120px] sm:min-h-0">
-          Find Your Dream Job<br className="hidden sm:block" />
+          Find Your Dream Job
+          <br className="hidden sm:block" />
           <span className="block sm:inline mt-1 sm:mt-0">
-            <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #60a5fa, #a78bfa)' }}>
+            <span
+              className="text-transparent bg-clip-text"
+              style={{
+                backgroundImage: "linear-gradient(90deg, #60a5fa, #a78bfa)",
+              }}
+            >
               As a {displayed}
             </span>
             <span className="text-blue-400 animate-pulse ml-1">|</span>
@@ -73,11 +177,15 @@ const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange,
         </h1>
 
         <p className="text-gray-200 text-base sm:text-lg mb-8 sm:mb-10 max-w-2xl leading-relaxed">
-          Thousands of jobs in software, engineering, design, and technology are waiting for you.
+          Thousands of jobs in software, engineering, design, and technology are
+          waiting for you.
         </p>
 
         {/* Search Box */}
-        <form onSubmit={onSearch} className="bg-white rounded-2xl p-2 shadow-2xl max-w-2xl">
+        <form
+          onSubmit={onSearch}
+          className="bg-white rounded-2xl p-2 shadow-2xl max-w-2xl"
+        >
           {/* Title + Location row */}
           <div className="flex flex-col sm:flex-row gap-0">
             <div className="flex items-center gap-2 flex-1 px-3 py-1">
@@ -86,21 +194,31 @@ const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange,
                 type="text"
                 placeholder="Job title, skills, or keyword..."
                 className="w-full py-2.5 text-gray-800 placeholder:text-gray-400 focus:outline-none text-sm"
-                onChange={e => setLocalQuery(e.target.value)}
+                onChange={(e) => setLocalQuery(e.target.value)}
                 value={localQuery}
               />
             </div>
             <div className="hidden sm:block w-px bg-gray-200 my-2" />
             <div className="flex sm:hidden h-px bg-gray-100 mx-3" />
-            <div className="flex items-center gap-2 px-3 py-1 sm:w-44">
+            <div className="flex items-center gap-2 px-3 py-1 sm:w-48">
               <FiMapPin className="text-gray-400 flex-shrink-0 w-5 h-5" />
+
               <input
                 type="text"
                 placeholder="Location..."
                 className="w-full py-2.5 text-gray-800 placeholder:text-gray-400 focus:outline-none text-sm"
-                onChange={e => setLocalLocation(e.target.value)}
+                onChange={(e) => setLocalLocation(e.target.value)}
                 value={localLocation}
               />
+
+              <button
+                type="button"
+                onClick={handleUseLocation}
+                title="Use my current location"
+                className="flex-shrink-0 text-blue-500 hover:text-blue-700 transition-colors"
+              >
+                <FiCrosshair className="w-5 h-5" />
+              </button>
             </div>
           </div>
           {/* Search button – full width on mobile */}
@@ -115,11 +233,19 @@ const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange,
         {/* Popular Searches */}
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <span className="text-gray-300 text-sm">Popular:</span>
-          {['React Developer', 'UI/UX Designer', 'Python', 'Full Stack', 'Remote'].map(tag => (
-            <button key={tag}
+          {[
+            "React Developer",
+            "UI/UX Designer",
+            "Python",
+            "Full Stack",
+            "Remote",
+          ].map((tag) => (
+            <button
+              key={tag}
               type="button"
               onClick={() => handlePopularTag(tag)}
-              className="text-xs px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors">
+              className="text-xs px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
+            >
               {tag}
             </button>
           ))}
@@ -135,7 +261,9 @@ const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange,
                 <FiBriefcase className="w-5 h-5 text-blue-300" />
               </div>
               <div>
-                <p className="text-base font-bold">10,000+</p>
+                <p className="text-base font-bold">
+                  {Number(stats?.activeJobs || 0).toLocaleString()}
+                </p>
                 <p className="text-xs text-blue-300">Active Jobs</p>
               </div>
             </div>
@@ -145,7 +273,9 @@ const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange,
                 <FiUsers className="w-5 h-5 text-purple-300" />
               </div>
               <div>
-                <p className="text-base font-bold">50,000+</p>
+                <p className="text-base font-bold">
+                  {Number(stats?.candidates || 0).toLocaleString()}
+                </p>
                 <p className="text-xs text-blue-300">Candidates</p>
               </div>
             </div>
@@ -155,7 +285,9 @@ const Banner = ({ query, handleInputChange, locationQuery, handleLocationChange,
                 <FiTrendingUp className="w-5 h-5 text-green-300" />
               </div>
               <div>
-                <p className="text-base font-bold">500+</p>
+                <p className="text-base font-bold">
+                  {Number(stats?.companies || 0).toLocaleString()}
+                </p>
                 <p className="text-xs text-blue-300">Companies</p>
               </div>
             </div>

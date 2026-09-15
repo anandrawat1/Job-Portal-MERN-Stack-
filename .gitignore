@@ -3,3 +3,6 @@ node_modules/
 .env.*
 .env.local
 .DS_Store
+job-portal-client.zip
+job-portal-server.zip
+job-portal-server/uploads/

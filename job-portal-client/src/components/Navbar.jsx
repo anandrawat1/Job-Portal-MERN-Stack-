@@ -1,13 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Link, NavLink } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from "react";
+import { Link, NavLink } from "react-router-dom";
 import { FaBarsStaggered, FaXmark } from "react-icons/fa6";
-import { useAuth } from '../context/AuthContext';
-import { FiUser, FiSettings, FiLogOut, FiChevronDown, FiBriefcase } from 'react-icons/fi';
+import { useAuth } from "../context/AuthContext";
+import {
+  FiUser,
+  FiSettings,
+  FiLogOut,
+  FiChevronDown,
+  FiBriefcase,
+} from "react-icons/fi";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
-  const { user, logout, loading, isAdmin } = useAuth();
+  const { user, logout, loading, isAdmin, userProfile } = useAuth();
+  console.log("NAVBAR PROFILE:", userProfile);
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -17,28 +24,47 @@ const Navbar = () => {
         setIsAvatarOpen(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const navItems = [
     { path: "/", title: "Find Jobs", always: true },
     { path: "/companies", title: "Companies", always: true },
     { path: "/salary", title: "Salary Insights", always: true },
-    { path: "/my-job", title: isAdmin ? "Manage Jobs" : "My Jobs", show: !!user },
+    {
+      path: "/my-job",
+      title: isAdmin ? "Manage Jobs" : "My Jobs",
+      show: !!user,
+    },
     { path: "/post-job", title: "Post a Job", show: isAdmin },
     { path: "/talent", title: "Talent Pool", show: isAdmin },
     { path: "/analytics", title: "Analytics", show: isAdmin },
     { path: "/manage-admins", title: "Admins", show: isAdmin },
-  ].filter(item => item.always || item.show);
+  ].filter((item) => item.always || item.show);
 
   return (
-    <header className='max-w-screen container mx-auto xl:px-24 px-4 bg-white relative z-50 border-b border-gray-100'>
+    <header className="max-w-screen container mx-auto xl:px-24 px-4 bg-white relative z-50 border-b border-gray-100">
       <nav className="flex justify-between items-center py-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 text-xl text-black font-bold flex-shrink-0">
-          <svg width="28" height="28" viewBox="0 0 29 30" xmlns="http://www.w3.org/2000/svg" fill="none">
-            <circle cx="12.0143" cy="12.5143" r="12.0143" fill="#3575E2" fillOpacity="0.4" />
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-xl text-black font-bold flex-shrink-0"
+        >
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 29 30"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+          >
+            <circle
+              cx="12.0143"
+              cy="12.5143"
+              r="12.0143"
+              fill="#3575E2"
+              fillOpacity="0.4"
+            />
             <circle cx="16.9857" cy="17.4857" r="12.0143" fill="#3575E2" />
           </svg>
           <span>JobJunction</span>
@@ -67,43 +93,87 @@ const Navbar = () => {
           {loading ? null : user ? (
             <div className="relative" ref={dropdownRef}>
               <button
-                onClick={() => setIsAvatarOpen(prev => !prev)}
+                onClick={() => setIsAvatarOpen((prev) => !prev)}
                 className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-50 border border-gray-100 hover:border-gray-200 transition-all"
               >
                 {user.photoURL ? (
-                  <img src={user.photoURL} alt="avatar" referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" />
-                                ) : (
+                  <img
+                    src={user.photoURL}
+                    alt="avatar"
+                    referrerPolicy="no-referrer"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
                   <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                    {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                    {(user.displayName || user.email || "U")
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                 )}
                 <div className="text-left">
                   <p className="text-xs font-semibold text-gray-800 max-w-[100px] truncate leading-none">
-                    {user.displayName || user.email?.split('@')[0]}
+                    {userProfile?.displayName ||
+                      user.displayName ||
+                      user.email?.split("@")[0]}
                   </p>
-                  {isAdmin && <span className="text-[10px] text-blue-600 font-medium">Admin</span>}
+                  <span className="text-[10px] text-blue-600 font-medium">
+                    {isAdmin
+                      ? "Admin"
+                      : userProfile?.role === "employer"
+                        ? "Employer"
+                        : "Job Seeker"}
+                  </span>
                 </div>
-                <FiChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isAvatarOpen ? 'rotate-180' : ''}`} />
+                <FiChevronDown
+                  className={`w-4 h-4 text-gray-400 transition-transform ${isAvatarOpen ? "rotate-180" : ""}`}
+                />
               </button>
 
               {/* Dropdown */}
               {isAvatarOpen && (
                 <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="px-4 py-2 border-b border-gray-50 mb-1">
-                    <p className="text-xs font-semibold text-gray-800 truncate">{user.displayName || 'User'}</p>
-                    <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                    <p className="text-xs font-semibold text-gray-800 truncate">
+                      {userProfile?.displayName ||
+                        user.displayName ||
+                        user.email?.split("@")[0] ||
+                        "User"}
+                    </p>
+
+                    <p className="text-xs text-gray-400 truncate">
+                      {user.email}
+                    </p>
+
+                    <p className="text-xs font-semibold text-blue-600 mt-1">
+                      {isAdmin
+                        ? "Admin"
+                        : userProfile?.role === "employer"
+                          ? "Employer"
+                          : "Job Seeker"}
+                    </p>
                   </div>
-                  <Link to="/profile" onClick={() => setIsAvatarOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsAvatarOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
                     <FiUser className="w-4 h-4 text-gray-400" /> Edit Profile
                   </Link>
-                  <Link to="/my-job" onClick={() => setIsAvatarOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                  <Link
+                    to="/my-job"
+                    onClick={() => setIsAvatarOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
                     <FiBriefcase className="w-4 h-4 text-gray-400" /> My Jobs
                   </Link>
                   <div className="border-t border-gray-50 mt-1 pt-1">
-                    <button onClick={() => { logout(); setIsAvatarOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsAvatarOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                    >
                       <FiLogOut className="w-4 h-4" /> Logout
                     </button>
                   </div>
@@ -112,10 +182,16 @@ const Navbar = () => {
             </div>
           ) : (
             <>
-              <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors">
+              <Link
+                to="/login"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
+              >
                 Log in
               </Link>
-              <Link to="/sign-up" className="text-sm font-semibold bg-[#3575E2] text-white px-5 py-2 rounded-xl shadow-sm hover:bg-blue-700 hover:shadow-md transition-all hover:-translate-y-0.5">
+              <Link
+                to="/sign-up"
+                className="text-sm font-semibold bg-[#3575E2] text-white px-5 py-2 rounded-xl shadow-sm hover:bg-blue-700 hover:shadow-md transition-all hover:-translate-y-0.5"
+              >
                 Sign up free
               </Link>
             </>
@@ -123,19 +199,30 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Toggle */}
-        <button className="lg:hidden p-2 rounded-lg hover:bg-gray-50" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          {isMenuOpen ? <FaXmark className="w-5 h-5 text-gray-700" /> : <FaBarsStaggered className="w-5 h-5 text-gray-700" />}
+        <button
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-50"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? (
+            <FaXmark className="w-5 h-5 text-gray-700" />
+          ) : (
+            <FaBarsStaggered className="w-5 h-5 text-gray-700" />
+          )}
         </button>
       </nav>
 
       {/* Mobile Menu */}
-      <div className={`lg:hidden absolute left-0 right-0 top-full bg-white shadow-xl border-t border-gray-100 overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"}`}>
+      <div
+        className={`lg:hidden absolute left-0 right-0 top-full bg-white shadow-xl border-t border-gray-100 overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"}`}
+      >
         <div className="px-6 py-5 space-y-1">
           {navItems.map(({ path, title }) => (
-            <NavLink key={path} to={path}
+            <NavLink
+              key={path}
+              to={path}
               onClick={() => setIsMenuOpen(false)}
               className={({ isActive }) =>
-                `flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`
+                `flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`
               }
             >
               {title}
@@ -147,34 +234,66 @@ const Navbar = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-3 px-4 py-3">
                   {user.photoURL ? (
-                    <img src={user.photoURL} alt="avatar" referrerPolicy="no-referrer" className="w-10 h-10 rounded-full object-cover" />
+                    <img
+                      src={user.photoURL}
+                      alt="avatar"
+                      referrerPolicy="no-referrer"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-base">
-                      {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                      {(user.displayName || user.email || "U")
+                        .charAt(0)
+                        .toUpperCase()}
                     </div>
                   )}
                   <div>
-                    <p className="font-semibold text-sm text-gray-900">{user.displayName || 'User'}</p>
+                    <p className="font-semibold text-sm text-gray-900">
+                      {user.displayName || "User"}
+                    </p>
+
                     <p className="text-xs text-gray-500">{user.email}</p>
+
+                    <p className="text-xs font-semibold text-blue-600 mt-1">
+                      {isAdmin
+                        ? "Admin"
+                        : userProfile?.role === "employer"
+                          ? "Employer"
+                          : "Job Seeker"}
+                    </p>
                   </div>
                 </div>
-                <Link to="/profile" onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 hover:bg-gray-50">
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 hover:bg-gray-50"
+                >
                   <FiUser className="w-4 h-4" /> Edit Profile
                 </Link>
-                <button onClick={() => { logout(); setIsMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-500 hover:bg-red-50">
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-500 hover:bg-red-50"
+                >
                   <FiLogOut className="w-4 h-4" /> Logout
                 </button>
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                <Link to="/login" onClick={() => setIsMenuOpen(false)}
-                  className="w-full text-center py-3 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium">
+                <Link
+                  to="/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full text-center py-3 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium"
+                >
                   Log in
                 </Link>
-                <Link to="/sign-up" onClick={() => setIsMenuOpen(false)}
-                  className="w-full text-center py-3 bg-[#3575E2] text-white rounded-xl text-sm font-semibold shadow-sm">
+                <Link
+                  to="/sign-up"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full text-center py-3 bg-[#3575E2] text-white rounded-xl text-sm font-semibold shadow-sm"
+                >
                   Sign up free
                 </Link>
               </div>
